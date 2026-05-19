@@ -72,6 +72,15 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="learn"
+        options={{
+          title: 'Wiedza',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="📚" label="Wiedza" focused={focused} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

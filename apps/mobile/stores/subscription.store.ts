@@ -1,60 +1,75 @@
 import { create } from 'zustand';
+import { api } from '../utils/api';
 
-type Plan = 'free' | 'premium';
+type Status = 'FREE' | 'TRIAL' | 'PREMIUM' | 'EXPIRED' | 'LOADING';
 
 interface SubscriptionState {
-  plan: Plan;
-  status: 'active' | 'trialing' | 'past_due' | 'canceled';
-  trialDaysLeft: number | null;
-  currentPeriodEnd: Date | null;
+  status: Status;
+  expiryDate: Date | null;
+  ocrUsedThisMonth: number;
 
-  setPlan: (plan: Plan, status: SubscriptionState['status'], periodEnd?: Date) => void;
-  isPremium: () => boolean;
-  canAccess: (feature: PremiumFeature) => boolean;
+  // Feature flags — use these in components
+  canUseOcrUnlimited: boolean;
+  canUseInsightEngine: boolean;
+  canUseFullLibrary: boolean;
+
+  checkSubscription: () => Promise<void>;
+  purchase: () => Promise<boolean>;
+  restore: () => Promise<void>;
+  setStatus: (status: Status, expiry?: Date | null) => void;
+  incrementOcr: () => void;
 }
 
-export type PremiumFeature =
-  | 'ai_tax_advisor'
-  | 'ocr_scanner'
-  | 'open_banking'
-  | 'cashflow_ai'
-  | 'factoring'
-  | 'tax_simulator'
-  | 'swipe_to_tax'
-  | 'pdf_export';
-
-const PREMIUM_FEATURES: PremiumFeature[] = [
-  'ai_tax_advisor',
-  'ocr_scanner',
-  'open_banking',
-  'cashflow_ai',
-  'factoring',
-  'tax_simulator',
-  'swipe_to_tax',
-  'pdf_export',
-];
+function deriveFlags(status: Status): Pick<SubscriptionState, 'canUseOcrUnlimited' | 'canUseInsightEngine' | 'canUseFullLibrary'> {
+  const isPremiumActive = status === 'PREMIUM' || status === 'TRIAL';
+  return {
+    canUseOcrUnlimited: isPremiumActive,
+    canUseInsightEngine: isPremiumActive,
+    canUseFullLibrary: true, // Free gets 2/category, Premium gets all
+  };
+}
 
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
-  plan: 'free',
-  status: 'active',
-  trialDaysLeft: null,
-  currentPeriodEnd: null,
+  status: 'LOADING',
+  expiryDate: null,
+  ocrUsedThisMonth: 0,
+  ...deriveFlags('LOADING'),
 
-  setPlan: (plan, status, periodEnd) => {
-    const trialDaysLeft =
-      status === 'trialing' && periodEnd
-        ? Math.max(0, Math.ceil((periodEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-        : null;
-    set({ plan, status, trialDaysLeft, currentPeriodEnd: periodEnd ?? null });
+  setStatus: (status, expiry) => {
+    set({ status, expiryDate: expiry ?? null, ...deriveFlags(status) });
   },
 
-  isPremium: () => {
-    const { plan, status } = get();
-    return plan === 'premium' && (status === 'active' || status === 'trialing');
+  checkSubscription: async () => {
+    try {
+      const data = await api.get<{
+        subscriptionStatus: Status;
+        subscriptionExpiry: string | null;
+        ocrUsedThisMonth: number;
+      }>('/api/auth/me').then((r) => (r as { user: typeof r }).user as typeof r);
+
+      const expiry = data.subscriptionExpiry ? new Date(data.subscriptionExpiry) : null;
+      set({
+        status: data.subscriptionStatus ?? 'FREE',
+        expiryDate: expiry,
+        ocrUsedThisMonth: data.ocrUsedThisMonth ?? 0,
+        ...deriveFlags(data.subscriptionStatus ?? 'FREE'),
+      });
+    } catch {
+      set({ status: 'FREE', ...deriveFlags('FREE') });
+    }
   },
 
-  canAccess: (feature) => {
-    if (!PREMIUM_FEATURES.includes(feature)) return true;
-    return get().isPremium();
+  purchase: async () => {
+    // RevenueCat purchase flow — actual SDK call happens in Paywall component
+    // This store only reflects the state after webhook updates it
+    return true;
+  },
+
+  restore: async () => {
+    await get().checkSubscription();
+  },
+
+  incrementOcr: () => {
+    set((s) => ({ ocrUsedThisMonth: s.ocrUsedThisMonth + 1 }));
   },
 }));

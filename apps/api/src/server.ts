@@ -18,6 +18,10 @@ import taxRoutes from './routes/tax.route.js';
 import profileRoutes from './routes/profile.route.js';
 import costRoutes from './routes/cost.route.js';
 import chatRoutes from './routes/chat.route.js';
+import ocrRoutes from './routes/ocr.route.js';
+import insightRoutes from './routes/insight.route.js';
+import educationRoutes from './routes/education.route.js';
+import revenuecatWebhook from './routes/webhooks/revenuecat.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -135,6 +139,10 @@ export async function buildApp() {
   app.register(profileRoutes, { prefix: '/api/profile' });
   app.register(costRoutes, { prefix: '/api/costs' });
   app.register(chatRoutes, { prefix: '/api/chat' });
+  app.register(ocrRoutes, { prefix: '/api/ocr' });
+  app.register(insightRoutes, { prefix: '/api/insights' });
+  app.register(educationRoutes, { prefix: '/api/education' });
+  app.register(revenuecatWebhook, { prefix: '/webhooks/revenuecat' });
 
   // Health check
   app.get('/health', { schema: { hide: true } }, async () => ({

@@ -28,17 +28,34 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  profile           JDGProfile?
-  subscription      Subscription?
-  refreshTokens     RefreshToken[]
-  invoices          Invoice[]
-  costs             Cost[]
-  taxReserves       TaxReserve[]
-  ksefToken         KSeFToken?
-  ksefSyncJobs      KSeFSyncJob[]
-  pushTokens        PushToken[]
+  profile              JDGProfile?
+  subscription         Subscription?
+  refreshTokens        RefreshToken[]
+  invoices             Invoice[]
+  costs                Cost[]
+  taxReserves          TaxReserve[]
+  ksefToken            KSeFToken?
+  ksefSyncJobs         KSeFSyncJob[]
+  pushTokens           PushToken[]
+  insightReports       InsightReport[]
+  lessonProgress       UserLessonProgress[]
+  aiCallLogs           AiCallLog[]
+  subscriptionStatus   SubscriptionPlan2    @default(FREE)
+  subscriptionExpiry   DateTime?
+  revenuecatUserId     String?              @unique
+  ocrUsedThisMonth     Int                  @default(0)
+  ocrResetDate         DateTime?
 
   @@map("users")
+}
+
+enum SubscriptionPlan2 {
+  FREE
+  TRIAL
+  PREMIUM
+  EXPIRED
+
+  @@map("subscription_plan2")
 }
 
 model RefreshToken {
@@ -352,4 +369,135 @@ model TaxReserve {
   @@unique([userId, month, year])
   @@index([userId, year])
   @@map("tax_reserves")
+}
+
+// ============================================================
+// AI INSIGHT ENGINE — Phase 2
+// ============================================================
+
+model InsightReport {
+  id            String      @id @default(cuid())
+  userId        String
+  period        String
+  periodType    PeriodType
+  generatedAt   DateTime    @default(now())
+  cachedUntil   DateTime
+  narrative     String
+  metrics       Json
+  promptVersion String      @default("insight-v1")
+  tokensUsed    Int         @default(0)
+  userRating    Int?
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, period])
+  @@map("insight_reports")
+}
+
+enum PeriodType {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+model PromptVersion {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  systemPrompt String
+  isActive     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@map("prompt_versions")
+}
+
+// ============================================================
+// AI CALL LOGGING — Phase 2
+// ============================================================
+
+model AiCallLog {
+  id           String    @id @default(cuid())
+  userId       String?
+  module       AiModule
+  inputTokens  Int
+  outputTokens Int
+  latencyMs    Int
+  success      Boolean
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, module, createdAt])
+  @@map("ai_call_logs")
+}
+
+enum AiModule {
+  OCR_EXTRACTION
+  OCR_RISK_AUDIT
+  INSIGHT_NARRATIVE
+}
+
+// ============================================================
+// EDUCATION PLATFORM — Phase 2
+// ============================================================
+
+model EducationCategory {
+  id        String            @id @default(cuid())
+  slug      String            @unique
+  name      String
+  icon      String
+  sortOrder Int
+
+  lessons   EducationLesson[]
+
+  @@map("education_categories")
+}
+
+model EducationLesson {
+  id              String               @id @default(cuid())
+  categoryId      String
+  slug            String               @unique
+  title           String
+  summary         String
+  contentMdx      String
+  taxFormFilter   String[]             @default(["ALL"])
+  updatedAt       DateTime             @updatedAt
+  publishedAt     DateTime?
+  legalSource     String?
+  readTimeMinutes Int                  @default(5)
+
+  category        EducationCategory    @relation(fields: [categoryId], references: [id])
+  quizQuestions   QuizQuestion[]
+  userProgress    UserLessonProgress[]
+
+  @@index([categoryId, publishedAt])
+  @@map("education_lessons")
+}
+
+model QuizQuestion {
+  id          String          @id @default(cuid())
+  lessonId    String
+  question    String
+  answers     Json
+  explanation String
+  sortOrder   Int             @default(0)
+
+  lesson      EducationLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_questions")
+}
+
+model UserLessonProgress {
+  id          String          @id @default(cuid())
+  userId      String
+  lessonId    String
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  quizScore   Int?
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      EducationLesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+  @@map("user_lesson_progress")
 }
