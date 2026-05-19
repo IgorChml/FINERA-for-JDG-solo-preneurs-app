@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.development.local
+.env.staging.local
+.env.production.local
+.env.development
+.env.staging
+.env.production
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.expo/
+
+# Turbo
+.turbo/
+
+# Test coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+
+# Prisma
+apps/api/prisma/migrations/*.sql
+
+# TypeScript
+*.tsbuildinfo
