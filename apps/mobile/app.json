@@ -24,7 +24,8 @@
         "NSCameraUsageDescription": "FINERA używa aparatu do skanowania paragonów i faktur",
         "NSFaceIDUsageDescription": "FINERA używa Face ID do autoryzacji płatności",
         "NSPhotoLibraryUsageDescription": "FINERA potrzebuje dostępu do galerii, aby dodawać skany dokumentów",
-        "NSPhotoLibraryAddUsageDescription": "FINERA zapisuje skany dokumentów w galerii"
+        "NSPhotoLibraryAddUsageDescription": "FINERA zapisuje skany dokumentów w galerii",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -41,7 +42,8 @@
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -97,8 +99,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": "UZUPELNIJ_PO_EAS_LOGIN"
+        "projectId": "bdcc9ef8-ae60-4bc9-89ec-413dd4cdd489"
+      },
+      "router": {
+        "origin": false
       }
-    }
+    },
+    "owner": "chml"
   }
 }
