@@ -3,18 +3,28 @@
     "name": "FINERA",
     "slug": "finera",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "finera",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A56DB"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "pl.finera.app",
+      "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "FINERA używa aparatu do skanowania paragonów i faktur",
         "NSFaceIDUsageDescription": "FINERA używa Face ID do autoryzacji płatności",
-        "NSPhotoLibraryUsageDescription": "FINERA potrzebuje dostępu do galerii, aby dodawać skany dokumentów"
+        "NSPhotoLibraryUsageDescription": "FINERA potrzebuje dostępu do galerii, aby dodawać skany dokumentów",
+        "NSPhotoLibraryAddUsageDescription": "FINERA zapisuje skany dokumentów w galerii"
       }
     },
     "android": {
@@ -23,12 +33,15 @@
         "backgroundColor": "#1A56DB"
       },
       "package": "pl.finera.app",
+      "versionCode": 1,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
         "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -42,14 +55,22 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "FINERA używa aparatu do skanowania paragonów"
+          "cameraPermission": "FINERA używa aparatu do skanowania paragonów i faktur",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FINERA potrzebuje dostępu do galerii do wyboru dokumentów"
         }
       ],
       [
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#1A56DB"
+          "color": "#1A56DB",
+          "sounds": []
         }
       ],
       [
@@ -69,9 +90,14 @@
     "experiments": {
       "typedRoutes": true
     },
+    "updates": {
+      "url": "https://u.expo.dev/UZUPELNIJ_PO_EAS_LOGIN",
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
+    },
     "extra": {
       "eas": {
-        "projectId": "finera-project-id"
+        "projectId": "UZUPELNIJ_PO_EAS_LOGIN"
       }
     }
   }
